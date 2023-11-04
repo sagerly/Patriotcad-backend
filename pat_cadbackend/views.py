@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from rest_framework import viewsets
 from .models import CurrentCall, Civilian, Citation, Arrest, Warrant, Vehicle
 from .serializers import CurrentCallSerializer
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotAllowed, HttpResponseNotFound
 
 class CurrentCallViewSet(viewsets.ModelViewSet):
     queryset = CurrentCall.objects.all().order_by('-time_of_call')
@@ -35,3 +35,14 @@ def search_civilian(request):
         }
 
         return JsonResponse({'civilian_data': civilian_data})
+    
+def delete_call(request, call_id):
+    if request.method == 'DELETE':
+        try:
+            call = CurrentCall.objects.get(pk=call_id)
+            call.delete()
+            return JsonResponse({'message': 'Call deleted successfully'}, status=204)
+        except CurrentCall.DoesNotExist:
+            return JsonResponse({'message': 'Call not found'}, status=404)
+    else:
+        return JsonResponse({'message': 'Method not allowed'}, status=405)

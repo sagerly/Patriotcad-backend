@@ -28,4 +28,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),  # This will include all API endpoints managed by the router
     path('search-civilian/', views.search_civilian, name='search_civilian'),
+    path('delete-call/<int:call_id>/', views.delete_call, name='delete_call'),
 ]
