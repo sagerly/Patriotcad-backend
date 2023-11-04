@@ -1,8 +1,9 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
 from rest_framework import viewsets
+from rest_framework.decorators import api_view
 from .models import CurrentCall, Civilian, Citation, Arrest, Warrant, Vehicle
 from .serializers import CurrentCallSerializer
-from django.http import JsonResponse, HttpResponseNotAllowed, HttpResponseNotFound
 
 class CurrentCallViewSet(viewsets.ModelViewSet):
     queryset = CurrentCall.objects.all().order_by('-time_of_call')
@@ -12,17 +13,12 @@ def search_civilian(request):
     if request.method == 'GET':
         first_name = request.GET.get('first_name')
         last_name = request.GET.get('last_name')
-
-        # Search for the civilian by first name and last name
         civilian = get_object_or_404(Civilian, first_name=first_name, last_name=last_name)
-
-        # Retrieve related information
         citations = Citation.objects.filter(civilians=civilian)
         arrests = Arrest.objects.filter(civilians=civilian)
         warrants = Warrant.objects.filter(civilians=civilian)
         vehicles = Vehicle.objects.filter(civilians=civilian)
 
-        # Prepare the data to send back to the frontend
         civilian_data = {
             'id': civilian.id,
             'first_name': civilian.first_name,
@@ -35,7 +31,7 @@ def search_civilian(request):
         }
 
         return JsonResponse({'civilian_data': civilian_data})
-    
+
 def delete_call(request, call_id):
     if request.method == 'DELETE':
         try:
@@ -46,3 +42,13 @@ def delete_call(request, call_id):
             return JsonResponse({'message': 'Call not found'}, status=404)
     else:
         return JsonResponse({'message': 'Method not allowed'}, status=405)
+
+@api_view(['POST'])
+def create_call(request):
+    if request.method == 'POST':
+        serializer = CurrentCallSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return JsonResponse(serializer.data, status=201)
+        else:
+            return JsonResponse(serializer.errors, status=400)
