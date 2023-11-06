@@ -30,4 +30,6 @@ urlpatterns = [
     path('search-civilian/', views.search_civilian, name='search_civilian'),
     path('delete-call/<int:call_id>/', views.delete_call, name='delete_call'),
     path('create-call/', views.create_call, name='create_call'),
+    path('api/register/', views.register, name='register'),  # Corrected import here
+    path('api/login/', views.login, name='login'),  # Corrected import here
 ]
